@@ -1,11 +1,12 @@
 import "./App.css";
 import { ConnectButton } from "@rainbow-me/rainbowkit";
-import { useAccount, useContractWrite, usePrepareContractWrite } from "wagmi";
+import { useAccount, useContractRead, useContractWrite, usePrepareContractWrite } from "wagmi";
 import { PDFDocument, rgb, degrees } from "pdf-lib";
 import { useState } from "react";
 import fontkit from "@pdf-lib/fontkit";
 import pinFileToIPFS from "./utils/pinFileToIPFS";
 import { ABI, contractAddress } from "./utils/constants";
+import { BigNumber } from "ethers";
 
 const generatePDF = async (name) => {
   // const existingPdfBytes = await fetch("Certificate.pdf").then((res) =>
@@ -43,6 +44,8 @@ const generatePDF = async (name) => {
 function App() {
   const { address, isConnected } = useAccount();
   const [name, setName] = useState("");
+  const [tokenId,setTokenId]=useState(0)
+  const [owner,setOwner]=useState("")
   const [ipfsuri, setIpfsuri] = useState(
     "https://bafybeicq5qpqnssll5c5mc5bnbszvsx7homuhm5uu4ckcpyndznvnakiwu.ipfs.w3s.link/Certificate.pdf"
   );
@@ -53,6 +56,12 @@ function App() {
     functionName: "safeMint",
     args: [address, ipfsuri],
   });
+  const {data,isError}=useContractRead({
+    address: contractAddress,
+    abi: ABI,
+    functionName: "ownerOf",
+    args: [tokenId]
+  })
   const { write } = useContractWrite(config);
   return (
     <div className="App">
@@ -65,7 +74,29 @@ function App() {
       {isConnected ? (
         <div style={{ textAlign: "center" }}>
           <ConnectButton />
+          <p>NFT owner verification</p>
+          <div>
+          <input type='number' placeholder="Enter the tokenId" value={tokenId} onChange={(e)=>{
+            if(e.target.value=="")
+            {
+              setTokenId(BigNumber.from(0))
+            }else{
+              setTokenId(BigNumber.from(e.target.value))
 
+            }
+}}/>
+          </div>
+      
+          <div style={{marginBottom:"10px"}}>
+          <button onClick={()=>{
+           setOwner(data) 
+          }}>Get owner</button>
+          </div>
+        {isError?<p style={{marginBottom: "20px"}}>NFT not yet minted!!!</p>  :owner==""?<p></p>:<div>
+          <p>{"Owner of Token Id "+tokenId} </p>
+          <p style={{marginBottom: "20px"}}>{owner}</p>
+        </div>
+          }
           <button
             type="submit"
             id="submitBtn"

@@ -1,6 +1,6 @@
-import fs from "fs";
-import axios from "axios";
-import { JWT } from "./constants";
+// import fs from "fs";
+// // import axios from "axios";
+// import { JWT } from "./constants";
 const pinFileToIPFS = async (src) => {
   // const formData = new FormData();
   // const file = fs.createReadStream(src);
